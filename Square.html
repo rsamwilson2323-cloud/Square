@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Crystal Square Ripple</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #000005;
+    touch-action: none;
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize();
+onresize = resize;
+
+let squares = [];
+let isTouching = false;
+let tx = 0, ty = 0;
+
+function addSquare(x, y){
+  squares.push({
+    x, y,
+    size: 10,
+    alpha: 1,
+    hue: Math.random()*360
+  });
+}
+
+// TOUCH
+document.addEventListener("touchstart", e=>{
+  let t = e.touches[0];
+  tx = t.clientX;
+  ty = t.clientY;
+  isTouching = true;
+  addSquare(tx,ty);
+});
+document.addEventListener("touchmove", e=>{
+  let t = e.touches[0];
+  tx = t.clientX;
+  ty = t.clientY;
+  isTouching = true;
+});
+document.addEventListener("touchend", ()=> isTouching=false);
+
+// MOUSE
+document.addEventListener("mousedown", e=>{
+  tx = e.clientX;
+  ty = e.clientY;
+  isTouching = true;
+  addSquare(tx,ty);
+});
+document.addEventListener("mousemove", e=>{
+  if(isTouching){
+    tx = e.clientX;
+    ty = e.clientY;
+  }
+});
+document.addEventListener("mouseup", ()=> isTouching=false);
+
+// DRAW SQUARE
+function drawSquare(s){
+  ctx.beginPath();
+
+  let half = s.size / 2;
+
+  ctx.moveTo(s.x - half, s.y - half);
+  ctx.lineTo(s.x + half, s.y - half);
+  ctx.lineTo(s.x + half, s.y + half);
+  ctx.lineTo(s.x - half, s.y + half);
+
+  ctx.closePath(); // closes perfectly (no cracks)
+
+  ctx.strokeStyle = `hsla(${s.hue},100%,60%,${s.alpha})`;
+  ctx.lineWidth = 6;
+
+  ctx.shadowColor = `hsla(${s.hue},100%,60%,1)`;
+  ctx.shadowBlur = 25;
+
+  ctx.stroke();
+}
+
+// ANIMATION LOOP
+function animate(){
+  ctx.fillStyle = "rgba(0,0,15,0.22)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  if(isTouching) addSquare(tx,ty);
+
+  squares.forEach((s,i)=>{
+    drawSquare(s);
+
+    s.size += 4;
+    s.alpha -= 0.018;
+    s.hue += 1;
+
+    if(s.alpha <= 0) squares.splice(i,1);
+  });
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
